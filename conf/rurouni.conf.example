@@ -1,0 +1,24 @@
+[cache]
+# Configure rurouni-cache directories.
+
+CONF_DIR        = /data/kenshin/conf
+LOCAL_DATA_DIR  = /data/kenshin/storage/data
+LOCAL_LINK_DIR  = /data/kenshin/storage/link
+LOG_DIR         = /data/kenshin/storage/log
+PID_DIR         = /data/kenshin/storage/run
+
+LINE_RECEIVER_INTERFACE = 0.0.0.0
+PICKLE_RECEIVER_INTERFACE = 0.0.0.0
+CACHE_QUERY_INTERFACE = 0.0.0.0
+
+LOG_UPDATES = True
+MAX_CREATES_PER_MINUTE = 1000
+NUM_ALL_INSTANCE = 1
+
+DEFAULT_WAIT_TIME = 1
+
+
+[cache:0]
+LINE_RECEIVER_PORT = 2003
+PICKLE_RECEIVER_PORT = 2004 
+CACHE_QUERY_PORT = 7002 
