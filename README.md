@@ -5,7 +5,7 @@ Kenshin
 
 Kenshin project consists of two major components:
 
-- `Kenshin` is a fixed-size time-series database library, similar in design to [Whisper](https://github.com/graphite-project/whisper), it's an alternative to Whisper for [Graphite](https://github.com/graphite-project) storage component. Whisper performs lots of tiny I/O operations on lots of different files, Kenshin is aiming to improve the I/O performance. For more design details please refer to [design docs](https://github.com/douban/Kenshin/wiki/design) (Chinese) and QCon 2016 Presentation [slide](https://github.com/zzl0/zzl0.github.com/raw/master/files/QCon-Kenshin.pdf).
+- `Kenshin` is a fixed-size time-series database format, similar in design to [Whisper](https://github.com/graphite-project/whisper), it's an alternative to Whisper for [Graphite](https://github.com/graphite-project) storage component. Whisper performs lots of tiny I/O operations on lots of different files, Kenshin is aiming to improve the I/O performance. For more design details please refer to [design docs](https://github.com/douban/Kenshin/wiki/design) (Chinese) and QCon 2016 Presentation [slide](https://github.com/zzl0/zzl0.github.com/raw/master/files/QCon-Kenshin.pdf).
 
 - `Rurouni-cache` is a storage agent that sits in front of kenshin to batch up writes to files to make them more sequential, rurouni-cache is to kenshin as carbon-cache is to whisper.
 
