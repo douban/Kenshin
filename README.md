@@ -11,7 +11,16 @@ Kenshin project consists of two major components:
 
 - `Rurouni-cache` is a storage agent that sits in front of kenshin to batch up writes to files to make them more sequential, rurouni-cache is to kenshin as carbon-cache is to whisper.
 
-Kenshin is developing and maintaining by Douban Inc. Currently, it is working in production environment, powering all metrics (host, service, DAE app, user defined) in douban.com. In our environment, after using Kenshin, the IOPS is decreased by 97.5%.
+Kenshin is developing and maintaining by Douban Inc. Currently, it is working in production environment, powering all metrics (host, service, DAE app, user defined) in douban.com.
+
+
+### What's the performance of Kenshin?
+
+
+In our environment, after using Kenshin, the IOPS is decreased by 97.5%, and the query latency is not significantly slower than Whisper.
+
+<img src="/img/kenshin-perf.png" width="400"/>
+
 
 Quick Start
 ------------------
@@ -68,12 +77,6 @@ Whisper is great, and initially we did use it. Over time though, we ran into sev
 ### Why did you totally rewrite whisper? Couldn't you just submit a patch?
 
 The reason I didn't simply submit a patch for Whisper is that kenshin's design is incompatible with Whisper's design. Whisper using one file per metric. Kenshin on the other hand merge N metrics into one file.
-
-
-### What's the performance of Kenshin?
-
-In our environment, the IOPS is decreased by 97.5%, and the query latency is not significantly slower than Whisper.
-<img src="/img/kenshin-perf.png" width="400"/>
 
 
 Acknowledgments
