@@ -1,6 +1,8 @@
 Kenshin
 =============
 
+[![travis-ci status](https://travis-ci.org/douban/Kenshin.svg)](https://travis-ci.org/douban/Kenshin)
+
 > Kenshin ([るろうに剣心](http://zh.wikipedia.org/wiki/%E6%B5%AA%E5%AE%A2%E5%89%91%E5%BF%83))
 
 Kenshin project consists of two major components:
