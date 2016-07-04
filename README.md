@@ -27,6 +27,8 @@ Quick Start
 
 We recommend using virtualenv when installing dependencies:
 
+    $ git clone https://github.com/douban/Kenshin.git
+    $ cd Kenshin
     $ virtualenv venv
     $ source venv/bin/activate
     $ pip install -r requirements.txt
@@ -38,6 +40,10 @@ Tests can be run using nosetests:
 Setup configuration
 
     $ misc/init_setup_demo.sh
+
+Setup Kenshin
+
+    $ python setup.py install  # Or `export PYTHONPATH=.`
 
 Start Kenshin instance
     
@@ -53,7 +59,7 @@ Query data in cache
 
 Query data in file
     
-    $ python bin//kenshin-fetch.py storage/link/0/system/loadavg/min_1/metric_test.hs --from <timestamp>
+    $ python bin/kenshin-fetch.py storage/link/0/system/loadavg/min_1/metric_test.hs --from <timestamp>
 
 Get kenshin file info
 
