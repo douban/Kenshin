@@ -46,7 +46,7 @@ Setup Kenshin
     $ python setup.py install  # Or `export PYTHONPATH=.`
 
 Start Kenshin instance
-    
+ 
     $ python bin/rurouni-cache.py --debug --config=conf/rurouni.conf --instance=0 start
 
 Send metrics to Kenshin instance
@@ -58,7 +58,7 @@ Query data in cache
     $ python bin/kenshin-cache-query.py system.loadavg.min_1.metric_test
 
 Query data in file
-    
+ 
     $ python bin/kenshin-fetch.py storage/link/0/system/loadavg/min_1/metric_test.hs --from <timestamp>
 
 Get kenshin file info
@@ -84,6 +84,9 @@ Whisper is great, and initially we did use it. Over time though, we ran into sev
 
 The reason I didn't simply submit a patch for Whisper is that kenshin's design is incompatible with Whisper's design. Whisper using one file per metric. Kenshin on the other hand merge N metrics into one file.
 
+### How to intergrate Kenshin with Graphite-Web?
+
+Now you need to change the Graphite-Web source code to support Kenshin format, here is [an example](https://github.com/douban/Kenshin/issues/4). And We will write a plugin for using Graphite-Web and/or Graphite-API with Kenshin-based storage backend.
 
 Acknowledgments
 ------------------
