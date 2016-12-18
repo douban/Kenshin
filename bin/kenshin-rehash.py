@@ -38,8 +38,8 @@ def main():
         )
     parser.add_argument(
         '-m', '--kenshin-file', required=True,
-        help='kenshin data files that we want to add the history.'
-        )
+        help=('kenshin data files that we want to add the history, '
+              'use kenshin-find-file.py to generate this file.')
     parser.add_argument(
         '-p', '--processes', default=10, type=int,
         help="number of processes."

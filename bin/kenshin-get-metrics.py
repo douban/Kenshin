@@ -33,8 +33,16 @@ def compile_regexp(regexp_file):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dirs', required=True, help='directories that contain kenshin index files, seperated by comma.')
-    parser.add_argument('-f', '--regexp-file', required=True, help='file that contain regular expressions.')
+    parser.add_argument(
+        '-d', '--dirs',
+        required=True,
+        help='directories that contain kenshin index files, seperated by comma.'
+    )
+    parser.add_argument(
+        '-f', '--regexp-file',
+        required=True,
+        help='file that contain regular expressions.'
+    )
     args = parser.parse_args()
 
     regexps = list(compile_regexp(args.regexp_file))

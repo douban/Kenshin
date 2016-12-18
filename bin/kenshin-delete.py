@@ -105,9 +105,20 @@ def sort_metric_file(metric_file):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--storage-dir", help="Kenshin storage directory.")
-    parser.add_argument("-m", "--metric-file", help="Metrics that need to be deleted.")
-    parser.add_argument("--only-link", action="store_true", help="Only delete link files.")
+    parser.add_argument(
+        "-s", "--storage-dir",
+        help="Kenshin storage directory."
+    )
+    parser.add_argument(
+        "-m", "--metric-file",
+        help=("Metrics that need to be deleted, "
+              "use kenshin-get-metrics.py to generate this file")
+    )
+    parser.add_argument(
+        "--only-link",
+        action="store_true",
+        help="Only delete link files."
+    )
     args = parser.parse_args()
 
     sorted_metric_file = sort_metric_file(args.metric_file)

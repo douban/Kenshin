@@ -47,7 +47,7 @@ def get_whisper_file_content(data_dir, m):
         else:
             raise Exception('HTTP Error Code %s for metric %s' % (c.code, m))
     else:
-        with open(filename) as f:
+        with open(filepath) as f:
             return f.read()
 
 
