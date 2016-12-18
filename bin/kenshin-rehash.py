@@ -6,25 +6,35 @@ import time
 import urllib
 import struct
 import StringIO
-import fnv1a
 from multiprocessing import Process, Queue
 
 from kenshin import storage
 from kenshin.agg import Agg
 from kenshin.storage import Storage
 from kenshin.consts import NULL_VALUE
+from rurouni.utils import get_instance_of_metric
+from kenshin.tools.whisper_tool import (
+    read_header as whisper_read_header,
+    pointFormat as whisperPointFormat,
+)
 
 
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-t', '--src-type', required=True,
+        choices=['whisper', 'kenshin'],
+        help="src storage type"
+        )
+    parser.add_argument(
         '-d', '--src-data-dir', required=True,
         help="src data directory (local or http address)."
         )
     parser.add_argument(
-        '-n', '--src-instance-num', required=True, type=int,
-        help="src rurouni cache instance number."
+        '-n', '--src-instance-num', type=int,
+        help=('src rurouni cache instance number (required when src_type '
+              'is kenshin)')
         )
     parser.add_argument(
         '-m', '--kenshin-file', required=True,
@@ -35,6 +45,9 @@ def main():
         help="number of processes."
         )
     args = parser.parse_args()
+
+    if args.src_type == 'kenshin' and args.src_instance_num is None:
+        parser.error('src-instance-num is required')
 
     # start processes
     processes = []
@@ -53,11 +66,17 @@ def main():
             with open(kenshin_filepath) as f:
                 header = Storage.header(f)
             metrics = header['tag_list']
-            metric_paths = [
-                metric_to_filepath(args.src_data_dir, m, args.src_instance_num)
-                for m in metrics
-            ]
-            item = (header, metric_paths, metrics, kenshin_filepath)
+            if args.src_type == 'kenshin':
+                metric_paths = [
+                    metric_to_filepath(args.src_data_dir, m, args.src_instance_num)
+                    for m in metrics
+                ]
+            else:  # whisper
+                metric_paths = [
+                    metric_to_whisper_filepath(args.src_data_dir, m)
+                    for m in metrics
+                ]
+            item = (args.src_type, header, metric_paths, metrics, kenshin_filepath)
             queue.put(item)
 
     # stop processes
@@ -68,10 +87,10 @@ def main():
 
 
 def worker(queue):
-    for (meta, metric_paths, metrics, dst_file) in iter(queue.get, 'STOP'):
+    for (src_type, meta, metric_paths, metrics, dst_file) in iter(queue.get, 'STOP'):
         try:
             tmp_file = dst_file + '.tmp'
-            merge_metrics(meta, metric_paths, metrics, tmp_file)
+            merge_metrics(src_type, meta, metric_paths, metrics, tmp_file)
             os.rename(tmp_file, dst_file)
         except Exception as e:
             print >>sys.stderr, '[merge error] %s: %s' % (dst_file, e)
@@ -80,14 +99,20 @@ def worker(queue):
     return True
 
 
-def merge_metrics(meta, metric_paths, metric_names, output_file):
+def merge_metrics(src_type, meta, metric_paths, metric_names, output_file):
     ''' Merge metrics to a kenshin file.
     '''
     # Get content(data points grouped by archive) of each metric.
-    metrics_archives_points = [
-        get_metric_content(path, metric)
-        for (path, metric) in zip(metric_paths, metric_names)
-    ]
+    if src_type == 'kenshin':
+        metrics_archives_points = [
+            get_metric_content(path, metric)
+            for (path, metric) in zip(metric_paths, metric_names)
+        ]
+    else:  # whipser
+        metrics_archives_points = [
+            get_whisper_metric_content(path)
+            for path in metric_paths
+        ]
 
     # Merge metrics to a kenshin file
     with open(output_file, 'wb') as f:
@@ -117,11 +142,12 @@ def metric_to_filepath(data_dir, metric, instance_num):
     if metric.startswith('rurouni.'):
         instance = metric.split('.')[2]
     else:
-        idx = fnv1a.get_hash_bugfree(metric) % instance_num
-        # TODO: change this
-        # instance = str(idx)
-        instance = 'abc'[idx]
+        instance = str(get_instance_of_metric(metric, instance_num))
     return os.path.sep.join([data_dir, instance] + metric.split('.')) + '.hs'
+
+
+def metric_to_whisper_filepath(data_dir, metric):
+    return os.path.sep.join([data_dir] + metric.split('.')) + '.wsp'
 
 
 def merge_points(metrics_archive_points):
@@ -217,6 +243,35 @@ def get_metric_content(metric_path, metric_name):
             if ts > ts_min:
                 # (timestamp, value)
                 datapoint = (ts, unpacked_series[i+1+metric_idx])
+                archive_points.append(datapoint)
+        metric_content.append(archive_points)
+
+    return metric_content
+
+
+def get_whisper_metric_content(metric_path):
+    conn = urllib.urlopen(metric_path)
+    if conn.code == 200:
+        content = conn.read()
+    else:
+        raise Exception('HTTP Error Code %s for %s' % (conn.code, metric_path))
+
+    header = whisper_read_header(StringIO.StringIO(content))
+    byte_order, point_type = whisperPointFormat[0], whisperPointFormat[1:]
+    metric_content = []
+    now = int(time.time())
+    step = 2
+
+    for archive in header['archives']:
+        ts_min = now - archive['retention']
+        archive_points = []
+        series_format = byte_order + (point_type * archive['count'])
+        packed_str = content[archive['offset']: archive['offset'] + archive['size']]
+        unpacked_series = struct.unpack(series_format, packed_str)
+        for i in xrange(0, len(unpacked_series), step):
+            ts = unpacked_series[i]
+            if ts > ts_min:
+                datapoint = (ts, unpacked_series[i+1])
                 archive_points.append(datapoint)
         metric_content.append(archive_points)
 
