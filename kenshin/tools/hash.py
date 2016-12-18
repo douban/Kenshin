@@ -1,5 +1,5 @@
 # coding: utf-8
-import fnv1a
+from rurouni.fnv1a import get_int32_hash
 
 class Hash:
     def __init__(self, nodes):
@@ -12,9 +12,9 @@ class Hash:
         self.nodes.remove(node)
 
     def get_node(self, key):
-        idx = fnv1a.get_hash_bugfree(key) % len(self.nodes)
+        idx = get_int32_hash(key) % len(self.nodes)
         return self.nodes[idx]
 
     def get_nodes(self, key):
-        idx = fnv1a.get_hash_bugfree(key) % len(self.nodes)
+        idx = get_int32_hash(key) % len(self.nodes)
         return self.nodes[idx:] + self.nodes[:idx]

@@ -2,6 +2,7 @@
 import os
 from time import time
 from os.path import dirname, basename, abspath, splitext
+from rurouni.fnv1a import get_int32_hash
 
 
 def run_twistd_plugin(filename):
@@ -101,6 +102,10 @@ class TokenBucket(object):
     def __repr__(self):
         return '<%s %.2f %.2f>' % (
             self.__class__.__name__, self.capacity, self.fill_rate)
+
+
+def get_instance_of_metric(metric, num_all_instance):
+    return get_int32_hash(metric) % num_all_instance
 
 
 if __name__ == '__main__':

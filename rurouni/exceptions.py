@@ -9,3 +9,6 @@ class ConfigException(RurouniException):
 
 class TokenBucketFull(RurouniException):
     pass
+
+class UnexpectedMetric(RurouniException):
+    pass
