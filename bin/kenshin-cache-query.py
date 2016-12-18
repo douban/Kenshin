@@ -5,8 +5,24 @@ import argparse
 import struct
 import socket
 import cPickle as pickle
+from ConfigParser import ConfigParser
 
-RUROUNI_QUERY_PORTS = [7002]
+from rurouni.utils import get_instance_of_metric
+
+
+def gen_rurouni_query_port(conf_file):
+    parser = ConfigParser()
+    parser.read(conf_file)
+    prefix = 'cache:'
+    rs = {}
+    for s in parser.sections():
+        if s.startswith(prefix):
+            instance = int(s[len(prefix):])
+            for k, v in parser.items(s):
+                k = k.upper()
+                if k == 'CACHE_QUERY_PORT':
+                    rs[instance] = int(v)
+    return rs
 
 
 def main():
@@ -15,13 +31,17 @@ def main():
                         help="server's host(or ip).")
     parser.add_argument('--num', type=int, default=3,
                         help='number of rurouni caches.')
+    parser.add_argument('--conf',
+                        help='rurouni-cache conf file path.')
     parser.add_argument('metric', help="metric name.")
     args = parser.parse_args()
 
+    rurouni_query_ports = gen_rurouni_query_port(args.conf)
     server = args.server
     metric = args.metric
     num = args.num
-    port = RUROUNI_QUERY_PORTS[0]
+    port_idx = get_instance_of_metric(metric, num)
+    port = rurouni_query_ports[port_idx]
 
     conn = socket.socket()
     try:
