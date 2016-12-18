@@ -29,7 +29,7 @@ def main():
         )
     parser.add_argument(
         '-d', '--src-data-dir', required=True,
-        help="src data directory (local or http address)."
+        help="src data directory (http address)."
         )
     parser.add_argument(
         '-n', '--src-instance-num', type=int,
@@ -40,6 +40,7 @@ def main():
         '-m', '--kenshin-file', required=True,
         help=('kenshin data files that we want to add the history, '
               'use kenshin-find-file.py to generate this file.')
+        )
     parser.add_argument(
         '-p', '--processes', default=10, type=int,
         help="number of processes."

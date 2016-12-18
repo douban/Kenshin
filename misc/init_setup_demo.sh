@@ -14,3 +14,4 @@ mkdir -p $PWD/storage/data
 mkdir -p $PWD/storage/link
 mkdir -p $PWD/storage/log
 mkdir -p $PWD/storage/run
+touch $PWD/storage/index

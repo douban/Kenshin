@@ -1,6 +1,5 @@
 # coding: utf-8
 import os
-import urllib
 import re
 import struct
 
@@ -38,28 +37,15 @@ def remote_url(filepath):
     return filepath.startswith('http://')
 
 
-def read_header(filename):
-    if remote_url(filename):
-        fh = urllib.urlopen(filename)
-    else:
-        fh = open(filename)
+def read_header(fh):
     packed_meta = fh.read(metadataSize)
-
-    try:
-        agg_type, max_ret, xff, archive_cnt = struct.unpack(
-            metadataFormat, packed_meta)
-    except:
-        raise Exception("Unable to read header", filename)
+    agg_type, max_ret, xff, archive_cnt = struct.unpack(
+        metadataFormat, packed_meta)
 
     archives = []
     for i in xrange(archive_cnt):
         packed_archive_info = fh.read(archiveInfoSize)
-        try:
-            off, sec, cnt = struct.unpack(archiveInfoFormat, packed_archive_info)
-        except:
-            raise Exception(
-                "Unable to read archive%d metadata" % i, filename)
-
+        off, sec, cnt = struct.unpack(archiveInfoFormat, packed_archive_info)
         archive_info = {
             'offset': off,
             'sec_per_point': sec,
