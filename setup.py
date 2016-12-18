@@ -1,9 +1,6 @@
 # coding: utf-8
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, Extension
 
 import re
 import os
@@ -38,12 +35,18 @@ setup(
     url='http://code.dapps.douban.com/Kenshin',
     download_url='http://code.dapps.douban.com/Kenshin.git',
     author_email='zhuzhaolong0@gmail.com',
-    install_requires=[
-        'numpy',
-        'zope.interface==4.1.1',
-        'Twisted==13.1'
-    ],
+    install_requires=[],
     tests_require=['nose'],
     packages=['kenshin', 'kenshin.tools', 'rurouni', 'rurouni.state', 'twisted.plugins'],
     scripts=glob('bin/*'),
+    zip_safe=False,
+    platforms='any',
+    setup_requires=['Cython'],
+    ext_modules=[
+        Extension(
+            name='%s.%s' % ('rurouni', name),
+            sources=['%s/%s.pyx' % ('rurouni', name)],
+            extra_compile_args=['-O3', '-funroll-loops', '-Wall'],
+        ) for name in ['fnv1a']
+    ],
 )
