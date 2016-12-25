@@ -4,11 +4,16 @@ import sys
 import os
 import time
 import glob
+import struct
 
 import kenshin
 from kenshin.consts import NULL_VALUE
 from kenshin.agg import Agg
 from rurouni.storage import loadStorageSchemas
+
+
+# Three action types.
+NO_OPERATION, CHANGE_META, REBUILD = range(3)
 
 
 def get_schema(storage_schemas, schema_name):
@@ -19,22 +24,61 @@ def get_schema(storage_schemas, schema_name):
 
 def resize_data_file(schema, data_file):
     print data_file
-    rebuild = False
     with open(data_file) as f:
         header = kenshin.header(f)
     retentions = schema.archives
     old_retentions = [(x['sec_per_point'], x['count'])
                       for x in header['archive_list']]
-    msg = ""
-    if retentions != old_retentions:
-        rebuild = True
-        msg += "retentions:\n%s -> %s" % (old_retentions, retentions)
+    msg = []
+    action = NO_OPERATION
 
-    if not rebuild:
+    # x files factor
+    if schema.xFilesFactor != header['x_files_factor']:
+        action = CHANGE_META
+        msg.append("x_files_factor: %f -> %f" %
+                   (header['x_files_factor'], schema.xFilesFactor))
+
+    # agg method
+    old_agg_name = Agg.get_agg_name(header['agg_id'])
+    if schema.aggregationMethod != old_agg_name:
+        action = CHANGE_META
+        msg.append("agg_name: %s -> %s" %
+                   (old_agg_name, schema.aggregationMethod))
+
+    # retentions
+    if retentions != old_retentions:
+        action = REBUILD
+        msg.append("retentions: %s -> %s" % (old_retentions, retentions))
+
+    if action == NO_OPERATION:
         print "No operation needed."
         return
 
-    print msg
+    elif action == CHANGE_META:
+        print 'Change Meta.'
+        print '\n'.join(msg)
+        change_meta(data_file, schema, header['max_retention'])
+        return
+
+    elif action == REBUILD:
+        print 'Rebuild File.'
+        print '\n'.join(msg)
+        rebuild(data_file, schema, header, retentions)
+
+    else:
+        raise ValueError(action)
+
+
+def change_meta(data_file, schema, max_retention):
+    with open(data_file, 'r+b') as f:
+        format = '!2Lf'
+        agg_id = Agg.get_agg_id(schema.aggregationMethod)
+        xff = schema.xFilesFactor
+        packed_data = struct.pack(format, agg_id, max_retention, xff)
+        f.write(packed_data)
+
+
+def rebuild(data_file, schema, header, retentions):
     now = int(time.time())
     tmpfile = data_file + '.tmp'
     if os.path.exists(tmpfile):
@@ -43,12 +87,10 @@ def resize_data_file(schema, data_file):
 
     print "Creating new kenshin database: %s" % tmpfile
     kenshin.create(tmpfile,
-                   [''] * len(header['tag_list']),
-                   schema.archives,
-                   header['x_files_factor'],
-                   Agg.get_agg_name(header['agg_id']))
-    for i, t in enumerate(header['tag_list']):
-        kenshin.add_tag(t, tmpfile, i)
+                   header['tag_list'],
+                   retentions,
+                   schema.xFilesFactor,
+                   schema.aggregationMethod)
 
     size = os.stat(tmpfile).st_size
     old_size = os.stat(data_file).st_size
@@ -84,9 +126,9 @@ def resize_data_file(schema, data_file):
 
 
 def main():
-    usage = ("e.g: python bin/kenshin-resize.py -d ../graphite-root/conf/ -n default -f '../graphite-root/storage/data/*/default/*.hs'\n"
+    usage = ("e.g: kenshin-change-schema.py -d ../graphite-root/conf/ -n default -f '../graphite-root/storage/data/*/default/*.hs'\n"
              "Note: kenshin combined many metrics to one file, "
-             "      please check file's meta data before you resize it. "
+             "      please check file's meta data before you change it. "
              "      (use keshin-info.py to view file's meta data)")
 
     import argparse

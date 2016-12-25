@@ -22,9 +22,13 @@ class Status(object):
         return '<Status (%s, %s, %s)>' % (self.status, self.pid, self.time)
 
 
-def find_cache_services():
+def find_cache_services(start_num):
+    def get_instance_num(service_path):
+        return int(service_path.rsplit('-', 1)[1])
+
     services = glob.glob('/service/rurouni-cache-*')
-    return sorted(services, key=lambda x: int(x.rsplit('-', 1)[1]))
+    services = [x for x in services if get_instance_num(x) >= start_num]
+    return sorted(services, key=get_instance_num)
 
 
 def get_service_status(service_name):
@@ -80,14 +84,21 @@ def restart_service(service_name):
         i += 1
 
 def main():
-    services = find_cache_services()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--time-interval", default=60, type=int,
+        help="time interval between two restarting operations.")
+    parser.add_argument("-s", "--start-num", default=0, type=int,
+        help="start instance number")
+    args = parser.parse_args()
+    services = find_cache_services(args.start_num)
     for s in services:
         print 'restarting %s' % s
         print get_service_status(s)
         restart_service(s)
         print get_service_status(s)
         print
-        time.sleep(10)
+        time.sleep(args.time_interval)
 
 
 if __name__ == '__main__':

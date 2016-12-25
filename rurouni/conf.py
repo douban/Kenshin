@@ -31,7 +31,8 @@ defaults = dict(
     LOCAL_LINK_DIR = None,
     PID_DIR = None,
 
-    MAX_CREATES_PER_MINUTE=float('inf'),
+    MAX_CREATES_PER_MINUTE = float('inf'),
+    NUM_ALL_INSTANCE = 1,
 )
 
 
@@ -270,11 +271,24 @@ def read_config(program, options):
         raise ConfigException('Error: missing required config %s' % config)
 
     instance = options['instance']
+    if not instance.isdigit():
+        raise ConfigException('Error: instance must be digit %s' % instance)
     settings['instance'] = instance
 
     # read configuration file
     settings.readFrom(config, section)
     settings.readFrom(config, '%s:%s' % (section, instance))
+
+    # check cache instance number
+    parser = ConfigParser()
+    parser.read(config)
+    prefix = 'cache:'
+    instances = {int(s[len(prefix):]) for s in parser.sections()
+                 if s.startswith(prefix)}
+    if settings['NUM_ALL_INSTANCE'] != len(instances) or \
+            settings['NUM_ALL_INSTANCE'] != max(instances) + 1:
+        raise ConfigException(
+            'Error: cache instance not match NUM_ALL_INSTANCE')
 
     settings['pidfile'] = (
         options['pidfile'] or

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
 import os.path
 
 BIN_DIR = os.path.dirname(os.path.abspath(__file__))

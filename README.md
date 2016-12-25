@@ -43,28 +43,14 @@ Setup configuration
 
 Setup Kenshin
 
-    $ python setup.py install  # Or `export PYTHONPATH=.`
+    $ python setup.py build_ext --inplace && python setup.py install
 
-Start Kenshin instance
- 
+Start two rurouni-cache instances
+
     $ python bin/rurouni-cache.py --debug --config=conf/rurouni.conf --instance=0 start
+    $ python bin/rurouni-cache.py --debug --config=conf/rurouni.conf --instance=1 start
 
-Send metrics to Kenshin instance
-
-    $ python examples/rurouni-pickle-client.py 1
-
-Query data in cache
-
-    $ python bin/kenshin-cache-query.py system.loadavg.min_1.metric_test
-
-Query data in file
- 
-    $ python bin/kenshin-fetch.py storage/link/0/system/loadavg/min_1/metric_test.hs --from <timestamp>
-
-Get kenshin file info
-
-    $ python bin/kenshin-info.py storage/link/0/system/loadavg/min_1/metric_test.hs
-
+Then go to [Graphite-Kenshin](https://github.com/douban/graphite-kenshin) for starting Web instances.
 
 FAQ
 ----------
@@ -86,7 +72,7 @@ The reason I didn't simply submit a patch for Whisper is that kenshin's design i
 
 ### How to intergrate Kenshin with Graphite-Web?
 
-Now you need to change the Graphite-Web source code to support Kenshin format, here is [an example](https://github.com/douban/Kenshin/issues/4). And We will write a plugin for using Graphite-Web and/or Graphite-API with Kenshin-based storage backend.
+We use write a plugin for Graphite-API named [Graphite-Kenshin](https://github.com/douban/graphite-kenshin)
 
 Acknowledgments
 ------------------

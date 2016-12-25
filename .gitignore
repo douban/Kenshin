@@ -63,3 +63,8 @@ data/
 # ctags
 .tags_sorted_by_file
 .tags
+
+# venv
+venv/
+
+rurouni/fnv1a.c

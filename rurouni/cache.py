@@ -25,8 +25,8 @@ from rurouni.conf import settings
 from rurouni.storage import (
     getFilePath, createLink, StorageSchemas, rebuildIndex, rebuildLink
 )
-from rurouni.utils import TokenBucket
-from rurouni.exceptions import TokenBucketFull
+from rurouni.utils import TokenBucket, get_instance_of_metric
+from rurouni.exceptions import TokenBucketFull, UnexpectedMetric
 
 
 class MetricCache(object):
@@ -104,7 +104,7 @@ class MetricCache(object):
     def put(self, metric, datapoint):
         try:
             (schema_name, file_idx, pos_idx) = self.getMetricIdx(metric)
-        except TokenBucketFull:
+        except (TokenBucketFull, UnexpectedMetric):
             return
         file_cache = self.schema_caches[schema_name][file_idx]
         file_cache.put(pos_idx, datapoint)
@@ -114,8 +114,20 @@ class MetricCache(object):
             if metric in self.metric_idxs:
                 return self.metric_idxs[metric]
             else:
+                from rurouni.state import instrumentation
+
                 if not self.token_bucket.consume(1):
+                    instrumentation.incr('droppedCreates')
                     raise TokenBucketFull()
+
+                instance = get_instance_of_metric(metric, settings['NUM_ALL_INSTANCE'])
+                if (instance != int(settings['instance']) and
+                    not metric.startswith(settings.RUROUNI_METRIC)):
+                    log.cache("UnexpectedMetric: %s" % metric)
+                    instrumentation.incr('droppedCreates')
+                    raise UnexpectedMetric()
+
+                instrumentation.incr('creates')
 
                 schema = self.storage_schemas.getSchemaByMetric(metric)
                 schema_cache = self.getSchemaCache(schema)
