@@ -4,10 +4,14 @@ from setuptools import setup, Extension
 
 import re
 import os
+import sys
 import codecs
 from glob import glob
 
 here = os.path.abspath(os.path.dirname(__file__))
+
+if sys.version_info < (2,7):
+    sys.exit('Sorry, Python < 2.7 is not supported')
 
 
 def read(*parts):
