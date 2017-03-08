@@ -88,7 +88,7 @@ Contributors
 - [@mckelvin](https://github.com/mckelvin)
 - [@windreamer](https://github.com/windreamer)
 - [@youngsofun](https://github.com/youngsofun)
-
+- [@camper42](https://github.com/camper42)
 
 License
 -------
