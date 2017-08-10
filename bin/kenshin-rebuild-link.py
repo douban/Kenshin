@@ -27,7 +27,13 @@ def main():
                 metric_list = header['tag_list']
                 for metric in metric_list:
                     if metric != '':
-                        create_link(metric, link_dir, fp)
+                        try:
+                            create_link(metric, link_dir, fp)
+                        except OSError as exc:
+                            if exc.errno == errno.ENAMETOOLONG:
+                                pass
+                            else:
+                                raise
 
 
 def create_link(metric, link_dir, file_path):

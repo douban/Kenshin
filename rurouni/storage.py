@@ -3,6 +3,7 @@
 import os
 import re
 import glob
+import errno
 from os.path import join, sep, splitext, basename, dirname
 
 import kenshin
@@ -23,7 +24,13 @@ def getMetricPath(metric):
 
 def createLink(metric, file_path):
     metric_path = getMetricPath(metric)
-    _createLinkHelper(metric_path, file_path)
+    try:
+        _createLinkHelper(metric_path, file_path)
+    except OSError as exc:
+        if exc.errno == errno.ENAMETOOLONG:
+            pass
+        else:
+            raise
 
 
 def _createLinkHelper(link_path, file_path):
@@ -33,7 +40,7 @@ def _createLinkHelper(link_path, file_path):
     dir_ = dirname(link_path)
     mkdir_p(dir_)
     if os.path.lexists(link_path):
-        os.rename(link_path, link_path +'.bak')
+        os.rename(link_path, link_path + '.bak')
     os.symlink(file_path, link_path)
 
 
@@ -80,7 +87,13 @@ def rebuildLink(instance_data_dir, instance_link_dir):
                 for metric in metric_list:
                     if metric != '':
                         link_path = getMetricPathByInstanceDir(instance_link_dir, metric)
-                        _createLinkHelper(link_path, fp)
+                        try:
+                            _createLinkHelper(link_path, fp)
+                        except OSError as exc:
+                            if exc.errno == errno.ENAMETOOLONG:
+                                pass
+                            else:
+                                raise
 
 
 class Archive:
