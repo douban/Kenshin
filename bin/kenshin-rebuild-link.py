@@ -4,15 +4,16 @@
 import os
 import sys
 import glob
+import errno
+
 import kenshin
-from os.path import basename, splitext
 from kenshin.utils import mkdir_p
 
 
 def main():
     if len(sys.argv) < 3:
-        print ('Need data_dir and link_dir.\n'
-               'e.g.: kenshin-rebuild-link.py /kenshin/data/a /kenshin/link/a')
+        print('Need data_dir and link_dir.\n'
+              'e.g.: kenshin-rebuild-link.py /kenshin/data/a /kenshin/link/a')
         sys.exit(1)
 
     data_dir, link_dir = sys.argv[1:]
@@ -27,7 +28,13 @@ def main():
                 metric_list = header['tag_list']
                 for metric in metric_list:
                     if metric != '':
-                        create_link(metric, link_dir, fp)
+                        try:
+                            create_link(metric, link_dir, fp)
+                        except OSError as exc:
+                            if exc.errno == errno.ENAMETOOLONG:
+                                pass
+                            else:
+                                raise
 
 
 def create_link(metric, link_dir, file_path):
